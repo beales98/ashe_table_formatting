@@ -13,6 +13,7 @@ Employee_key = {
 
 Published_tables_data = {
     # Dictionary of tables and there contributing data sources
+    'Table test - Test data' : ['testtable'],
     'Table 1 - All Employees' : ['total'],
     'Table 2 - Occupation (2)' : ['occ1', 'occ2'],
     'Table 3 - Gor by Occ (2)' : ['gro', 'goc', 'wgor', 'occ1', 'occ2'],
@@ -52,6 +53,7 @@ Published_tables_data = {
 
 Published_tables_templates = {
     # Tables and their respective template names
+    'Table test - Test data' : 'Testtable template.xlsx',
     'Table 1 - All Employees' : 'Total template.xlsx',
     'Table 2 - Occupation (2)' : 'Occupation SOC20 (2) template.xlsx',
     'Table 3 - Gor by Occ (2)' : 'Work Region Occupation SOC20 (2) template.xlsx',
@@ -91,17 +93,17 @@ Published_tables_templates = {
 
 Published_table_breakdown = {
     #Variable type and their corresponding short hand
-    'Weekly pay - Gross' : 'GPAY',
-    'Weekly pay - Excluding overtime' : 'GPOX',
-    'Basic Pay - Including other pay' : 'BPAYinc',
-    'Overtime pay' : 'OVPAY',
+    #'Weekly pay - Gross' : 'GPAY',
+    #'Weekly pay - Excluding overtime' : 'GPOX',
+    #'Basic Pay - Including other pay' : 'BPAYinc',
+    #'Overtime pay' : 'OVPAY',
     'Hourly Pay' : 'HE',
-    'Hourly pay - Excluding overtime' : 'HEXO',
-    'Annual pay - Gross' : 'AGP',
-    'Annual pay - Incentive' : 'ANIPAY',
-    'Paid hour worked - Total' : 'THRS',
-    'Paid hours worked - Basic' : 'BHR',
-    'Paid hours worked - Overtime' : 'OVHRS'
+    #'Hourly pay - Excluding overtime' : 'HEXO',
+    #'Annual pay - Gross' : 'AGP',
+    #'Annual pay - Incentive' : 'ANIPAY',
+    #'Paid hour worked - Total' : 'THRS',
+    #'Paid hours worked - Basic' : 'BHR',
+    #'Paid hours worked - Overtime' : 'OVHRS'
     }
 
 Table_sub_number_key = {

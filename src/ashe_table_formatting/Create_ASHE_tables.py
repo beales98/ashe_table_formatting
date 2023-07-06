@@ -107,7 +107,7 @@ def get_files(csv, file_name):
     Returns
     -------
     data : List of dataframes
-        9 Sorted dataframes with data from the 9 employee types.
+    9 Sorted dataframes with data from the 9 employee types.
 
     '''
     data = pd.read_csv(csv, header = 5, encoding = 'unicode_escape', thousands=',', on_bad_lines = 'warn', skip_blank_lines = False)
@@ -136,15 +136,14 @@ def get_files(csv, file_name):
 
 def find_datasets(csv_path, file_name):
     '''
-    Finds all csv files in path and appends them to a list if they are
-    required by file_name.
+    Finds all csv files in path where the file_name is in the file's name and appends them to a list.
 
     Parameters
     ----------
     csv_path : String
         File path to CSVs.
     file_name : String
-        file names to be loaded.
+        substring of file names to be loaded eg for table 1, all relevant CSV files have 'total' in their names.
 
     Returns
     -------
@@ -249,33 +248,29 @@ def create_data_ready(csv_path, table_name, variable, type_of_value, employee_ty
     data_needed['population number'] = data_needed['population number'].replace(r'\.(?=\s|$)','0', regex=True)
     data_needed[numeric_cols] = data_needed[numeric_cols].apply(lambda x : pd.to_numeric(x, errors='coerce'))
     
-    for i in percentiles:
-        data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x)).quantize(Decimal('.1'), rounding=ROUND_HALF_UP)) # Round our percentiles to 1dp
+    data_needed['Mean'] = data_needed['Mean'].replace(r'\.(?=\s|$)', np.nan, regex=True)
+    data_needed['Median'] = data_needed['Median'].replace(r'\.(?=\s|$)', np.nan, regex=True)
+        
+    if variable != 'Hourly Pay' and variable != 'Hourly pay - Excluding overtime':
+        for i in percentiles + ['Mean', 'Median']:
+            data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x)).quantize(Decimal('.1'), rounding=ROUND_HALF_UP)) # Round our percentiles to 1dp
     
     if type_of_value == 'Values':
         data_needed['population number'] = data_needed['population number'] / 1000
         data_needed['population number'] = data_needed['population number'].map(lambda x: Decimal(str(x)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
-    
-    data_needed['Mean'] = data_needed['Mean'].replace(r'\.(?=\s|$)', np.nan, regex=True)
-    data_needed['Mean'] = pd.to_numeric(data_needed['Mean']).map(lambda x: Decimal(str(x)).quantize(Decimal('.1'), rounding=ROUND_HALF_UP))
-    data_needed['Mean'] = data_needed['Mean'].replace(np.nan, '.', regex=True)
-    
-    data_needed['Median'] = data_needed['Median'].replace(r'\.(?=\s|$)', np.nan, regex=True)
-    
+        
     # Convert pence to pounds for hourly datasets    
     if variable == 'Hourly Pay' or variable == 'Hourly pay - Excluding overtime':
         if type_of_value == 'Values':
             print('Converting pence to pound')
-            cols_pence = ['Median', '10', '20', '25', '30', '40', '60', '70', '75', '80', '90']
-            for i in cols_pence:
+            for i in percentiles + ['Mean', 'Median']:
                 try:
-                    data_needed[i] = pd.to_numeric(data_needed[i].map(lambda x: Decimal(str(x/100)).quantize(Decimal('.10'), rounding=ROUND_HALF_UP)))
+                    data_needed[i] = pd.to_numeric(data_needed[i].map(lambda x: Decimal(str(x/100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)))
                 except(TypeError):
                     data_needed[i] = pd.to_numeric(data_needed[i], errors='ignore')
-                    data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x/100)).quantize(Decimal('.10'), rounding=ROUND_HALF_UP))
-    else:           
-        data_needed['Median'] = pd.to_numeric(data_needed['Median']).map(lambda x: Decimal(str(x)).quantize(Decimal('.1'), rounding=ROUND_HALF_UP))
-    
+                    data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x/100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+
+    data_needed['Mean'] = data_needed['Mean'].replace(np.nan, '.', regex=True) # Replace missing data with '.' for mean col    
     data_needed['Median'] = data_needed['Median'].replace(np.nan, '.', regex=True) # Replace missing data with '.' for median col
     
     for col in numeric_cols:
@@ -741,8 +736,8 @@ def create_workbook(csv_path, csv_previous_year_path, template_path, output_path
                         
                 except:
                     if sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value=value).value == '.' and c_idx >= 6:
-                        sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value= 'x').fill = dark_blue
-                        sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value= 'x')
+                       sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value= 'x').fill = dark_blue
+                       #sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value= 'x')
                     
                     else:
                         sheet_active_cv_main_final.cell(row=r_idx + 5, column=c_idx + 2, value=value)

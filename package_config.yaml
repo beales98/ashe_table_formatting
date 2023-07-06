@@ -1,7 +1,7 @@
 # This file is where the user makes changes to file directories and paths. This is to be used within the package #
 file_paths:
-  - csv_path: "M:\\excelHTML\\2021provsoc20\\CSV"
-    csv_previous_year_path: "M:\\excelHTML\\2020\\CSV"
-    template_path: "M:\\New_python_macro\\Templates"
-    output_path: "M:\\New_python_macro\\Outputs"
+  - csv_path: "M:/excelHTML/2021provsoc20/CSV"
+    csv_previous_year_path: "M:/excelHTML/2020/CSV"
+    template_path: "M:/New_python_macro/Templates"
+    output_path: "M:/New_python_macro/Outputs"
     year:  2021

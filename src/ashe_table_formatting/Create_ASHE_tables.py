@@ -251,7 +251,7 @@ def create_data_ready(csv_path, table_name, variable, type_of_value, employee_ty
     data_needed['Mean'] = data_needed['Mean'].replace(r'\.(?=\s|$)', np.nan, regex=True)
     data_needed['Median'] = data_needed['Median'].replace(r'\.(?=\s|$)', np.nan, regex=True)
         
-    if variable != 'Hourly Pay' and variable != 'Hourly pay - Excluding overtime':
+    if not variable in ['Hourly Pay', 'Hourly pay - Excluding overtime', 'Annual pay - Gross', 'Annual pay - Incentive']:
         for i in percentiles + ['Mean', 'Median']:
             data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x)).quantize(Decimal('.1'), rounding=ROUND_HALF_UP)) # Round our percentiles to 1dp
     
@@ -269,6 +269,17 @@ def create_data_ready(csv_path, table_name, variable, type_of_value, employee_ty
                 except(TypeError):
                     data_needed[i] = pd.to_numeric(data_needed[i], errors='ignore')
                     data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x/100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+                    
+    # Special rounding rule for AGP and IPAYALL 
+    if variable == 'Annual pay - Gross' or variable == 'Annual pay - Incentive':
+        if type_of_value == 'Values':
+            for i in percentiles + ['Mean', 'Median']:
+                try:
+                    data_needed[i] = pd.to_numeric(data_needed[i].map(lambda x: Decimal(str(x)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)))
+                except(TypeError):
+                    data_needed[i] = pd.to_numeric(data_needed[i], errors='ignore')
+                    data_needed[i] = data_needed[i].map(lambda x: Decimal(str(x)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+
 
     data_needed['Mean'] = data_needed['Mean'].replace(np.nan, '.', regex=True) # Replace missing data with '.' for mean col    
     data_needed['Median'] = data_needed['Median'].replace(np.nan, '.', regex=True) # Replace missing data with '.' for median col
@@ -279,7 +290,7 @@ def create_data_ready(csv_path, table_name, variable, type_of_value, employee_ty
 
     return data_needed
 
-def copy_sheet_style(ws_template: opy.Workbook.worksheets, ws_published: opy.Workbook.worksheets, isvalmain):
+def copy_sheet_style(ws_template: opy.Workbook.worksheets, ws_published: opy.Workbook.worksheets, isvalmain, variable):
     '''
     Function copies cell styles from a template worksheet to the output
     worksheet. Has a seperate function for the value main sheet that requires
@@ -294,12 +305,16 @@ def copy_sheet_style(ws_template: opy.Workbook.worksheets, ws_published: opy.Wor
         for row in (ws_template.rows):
             for cell in row:
                 new_cell = ws_published.cell(row=cell.row, column=cell.col_idx)
-                
+                if variable == 'Hourly Pay' or variable == 'Hourly pay - Excluding overtime':
+                    new_cell.number_format = '0.00'
+                elif variable == 'Annual pay - Gross' or variable == 'Annual pay - Incentive':
+                    new_cell.number_format = '0'
+                else:
+                    new_cell.number_format = copy.copy(cell.number_format)
                 if cell.has_style:
                     new_cell.font = copy.copy(cell.font)
                     new_cell.border = copy.copy(cell.border)
                     new_cell.fill = copy.copy(cell.fill)
-                    new_cell.number_format = copy.copy(cell.number_format)
                     new_cell.protection = copy.copy(cell.protection)
                     new_cell.alignment = copy.copy(cell.alignment)
                     
@@ -309,12 +324,16 @@ def copy_sheet_style(ws_template: opy.Workbook.worksheets, ws_published: opy.Wor
         for row in (ws_template.rows):
             for cell in row:
                 new_cell = ws_published.cell(row=cell.row, column=cell.col_idx)
-                
+                if variable == 'Hourly Pay' or variable == 'Hourly pay - Excluding overtime':
+                    new_cell.number_format = '0.00'
+                elif variable == 'Annual pay - Gross' or variable == 'Annual pay - Incentive':
+                    new_cell.number_format = '0'
+                else:
+                    new_cell.number_format = copy.copy(cell.number_format)
                 if cell.has_style:
                     new_cell.font = copy.copy(cell.font)
                     new_cell.border = copy.copy(cell.border)
                     new_cell.fill = copy.copy(cell.fill)
-                    new_cell.number_format = copy.copy(cell.number_format)
                     new_cell.protection = copy.copy(cell.protection)
                     new_cell.alignment = copy.copy(cell.alignment)   
             
@@ -452,6 +471,7 @@ def make_safe(data):
 
     '''
     cols_to_empty = ['Median','Year on Year % Change', 'Mean', 'Year on Year % Change.1', '10', '20', '25', '30', '40', '60', '70', '75', '80', '90']
+    data['Safe'] = pd.to_numeric(data['Safe'])
     data = data.mask(data['Safe'] == 0, np.nan)
     data = data.fillna('..')
     data[cols_to_empty] = data[cols_to_empty].replace('..', '')
@@ -579,7 +599,7 @@ def create_workbook(csv_path, csv_previous_year_path, template_path, output_path
         
         '''A Special version is needed for values main where x is applied across rows with population <=3 '''
         data_val_main_masked[i][columns_to_mask] = data_val_main_masked[i][columns_to_mask].mask(data_val_main_masked[i]['population number'] <= 3, 'x')
-        data_val_main = apply_order(data_val_main_masked[i], template_order)        
+        data_val_main = apply_order(data_val_main_masked[i], template_order)
         
         '''Make Copies'''
         data_cv_unsafe = data_cv.copy()
@@ -644,8 +664,8 @@ def create_workbook(csv_path, csv_previous_year_path, template_path, output_path
         for i in range(0,6):
             sheet_active_val_unsafe.cell(row=max_order + 5 + 1 + i , column= 1, value = footnote['Footnote'].iat[i]) # add footnote 
         
-        copy_sheet_style(template_cv_main[sheet], sheet_active_cv_unsafe, 'notvalmain') # Copy template formatting to CV
-        copy_sheet_style(template_cv_main[sheet], sheet_active_val_unsafe, 'notvalmain') # Copy template formatting to Value
+        copy_sheet_style(template_cv_main[sheet], sheet_active_cv_unsafe, 'notvalmain' , variable= table_variable) # Copy template formatting to CV
+        copy_sheet_style(template_cv_main[sheet], sheet_active_val_unsafe, 'notvalmain', variable= table_variable) # Copy template formatting to Value
        
         print('Done ' + ' ' + sheet + ' Unsafe')
         
@@ -660,7 +680,7 @@ def create_workbook(csv_path, csv_previous_year_path, template_path, output_path
         for i in range(0,6):
             sheet_active_val_safe.cell(row=max_order + 5 + 1 + i , column= 1, value = footnote['Footnote'].iat[i])
         
-        copy_sheet_style(template_cv_main[sheet], sheet_active_val_safe, 'notvalmain')
+        copy_sheet_style(template_cv_main[sheet], sheet_active_val_safe, 'notvalmain', variable= table_variable)
         print('Done ' + ' ' + sheet + ' Safe')
         
         '''Print main to excel'''
@@ -773,7 +793,7 @@ def create_workbook(csv_path, csv_previous_year_path, template_path, output_path
     
     '''Copy CV formatting to Values'''
     for sheet in template_sheet_names:
-        copy_sheet_style(template_cv_main[sheet], template_val_main[sheet], 'valmain')
+        copy_sheet_style(template_cv_main[sheet], template_val_main[sheet], 'valmain', variable= table_variable)
         
     template_val_main.save(output_path + '/' + template_name + ' ' + workbook_name_val + ' ' + f'{year}' + '.xlsx')
     

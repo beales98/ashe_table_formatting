@@ -18,7 +18,7 @@ def run_pipeline():
     template_path = example_config["template_path"]
     output_path = example_config["output_path"]
     year = example_config["year"]
-    create_table(csv_path, csv_previous_year_path, template_path, output_path, 'Table test - Test data', year)
+    create_table(csv_path, csv_previous_year_path, template_path, output_path, 'Table 16 - Industry (4)', year)
     #create_workbook(csv_path, csv_previous_year_path, template_path, output_path, 'Table test - Test data', 'Hourly Pay', year)
 
 if __name__ == "__main__":

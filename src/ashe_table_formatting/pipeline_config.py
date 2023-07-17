@@ -95,9 +95,9 @@ Published_table_breakdown = {
     #Variable type and their corresponding short hand
     #'Weekly pay - Gross' : 'GPAY',
     #'Weekly pay - Excluding overtime' : 'GPOX',
-    #'Basic Pay - Including other pay' : 'BPAYinc',
+    'Basic Pay - Including other pay' : 'BPAYinc',
     #'Overtime pay' : 'OVPAY',
-    'Hourly Pay' : 'HE',
+    #'Hourly Pay' : 'HE',
     #'Hourly pay - Excluding overtime' : 'HEXO',
     #'Annual pay - Gross' : 'AGP',
     #'Annual pay - Incentive' : 'ANIPAY',
